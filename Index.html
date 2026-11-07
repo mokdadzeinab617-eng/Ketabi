@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ketabi – كتابي | مكتبتك الرقمية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo for Arabic & Inter for English -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- React & React DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: {
+                            50: '#FDFBF7',
+                            100: '#F7F3E9',
+                            200: '#EFE7D5',
+                        },
+                        beige: {
+                            100: '#F3EFE6',
+                            200: '#E8DFD1',
+                            300: '#D6C7B2',
+                            400: '#BFA88F',
+                        },
+                        brown: {
+                            700: '#4A3525',
+                            800: '#3D2B1F',
+                            900: '#2C1D11',
+                            950: '#1A1009',
+                        },
+                        gold: {
+                            400: '#E5C158',
+                            500: '#D4AF37',
+                            600: '#C5A059',
+                            700: '#A38038',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Cairo', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif;
+            background-color: #FDFBF7;
+            color: #2C1D11;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F7F3E9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D6C7B2;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #C5A059;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #C5A059 50%, #A38038 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-gold-500 selection:text-white">
+
+    <div id="root" class="flex-1 flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, createContext, useContext } = React;
+
+        // --- TRANSLATION DICTIONARY ---
+        const translations = {
+            ar: {
+                appName: "كتابي",
+                appSubTitle: "مكتبتك الرقمية",
+                roleCustomer: "مشتري",
+                roleSeller: "مؤلف / بائع",
+                roleAdmin: "مدير المنصة",
+                switchRole: "وضع التجربة والتنقل بين الحسابات:",
+                home: "الرئيسية",
+                store: "المتجر",
+                myLibrary: "مكتبتي",
+                sellerDashboard: "استوديو المؤلف",
+                adminDashboard: "لوحة الإدارة",
+                searchPlaceholder: "ابحث عن كتاب، مؤلف، أو موضوع...",
+                heroTitle: "اكتشف واقرأ واقتنِ أفضل الكتب الرقمية",
+                heroSub: "منصة عالمية تمكن المؤلفين والمعلمين من نشر وبيع كتبهم الرقمية بصيغة PDF مباشرة للقراء.",
+                browseBooks: "تصفح الكتب",
+                startSelling: "ابدأ البيع معنا",
+                featuredBooks: "كتب مختارة",
+                newArrivals: "أحدث الإصدارات",
+                bestSellers: "الأكثر مبيعاً",
+                categories: "التصنيفات الرئيسية",
+                allCategories: "جميع التصنيفات",
+                price: "السعر",
+                buyNow: "شراء الآن",
+                addToCart: "إضافة للسلة",
+                previewBook: "معاينة عينة",
+                pages: "صفحة",
+                author: "المؤلف",
+                rating: "التقييم",
+                cart: "سلة الشراء",
+                checkout: "إتمام الشراء",
+                total: "المجموع الكلي",
+                paymentMethod: "وسيلة الدفع",
+                uploadReceipt: "إرفاق إيصال التحويل",
+                confirmOrder: "تأكيد الطلب وإرسال الإيصال",
+                pendingApproval: "قيد المراجعة والتحقق",
+                approved: "جاهز للتحميل والقراءة",
+                downloadPdf: "تحميل PDF",
+                readOnline: "قراءة في المتصفح",
+                platformCommissionNotice: "يتم توزيع الأرباح بنسبة 80% للمؤلف و20% للمنصة تلقائياً.",
+                sellerEarnings: "صافي أرباحك (80%)",
+                totalSales: "إجمالي المبيعات",
+                availableBalance: "الرصيد المتاح للسحب",
+                requestPayout: "طلب سحب الأرباح",
+                addNewBook: "إضافة كتاب جديد",
+                bookTitleAr: "عنوان الكتاب (عربي)",
+                bookTitleEn: "عنوان الكتاب (إنجليزي)",
+                bookDesc: "وصف الكتاب",
+                uploadPdfFile: "رفع ملف الكتاب (PDF)",
+                uploadCoverImage: "رفع صورة الغلاف",
+                adminPendingPayments: "طلبات التحقق من الدفع المالي",
+                adminPendingBooks: "كتب جديدة بانتظار الاعتماد",
+                approve: "موافقة واعتماد",
+                reject: "رفض",
+                revenueSummary: "ملخص إيرادات المنصة",
+                ketabiRevenue: "صافي دخل المنصة (20%)",
+                sellerPayouts: "مستحقات البائعين (80%)",
+                searchFilter: "تصفية وتصنيف",
+                priceLowHigh: "السعر: من الأقل للأعلى",
+                priceHighLow: "السعر: من الأعلى للأقل",
+                newest: "الأحدث",
+                currencyLbp: "ل.ل",
+                cartEmpty: "سلة التسوق فارغة حالياً.",
+                noPurchasedBooks: "لم تقم بشراء أي كتب بعد.",
+                previewModalTitle: "معاينة فصل من الكتاب",
+                close: "إغلاق",
+                languageToggle: "English",
+                lbpRateText: "1 $ = 89,500 ل.ل",
+            },
+            en: {
+                appName: "Ketabi",
+                appSubTitle: "Digital Library",
+                roleCustomer: "Buyer",
+                roleSeller: "Author / Seller",
+                roleAdmin: "Admin",
+                switchRole: "Role Switcher Demo Mode:",
+                home: "Home",
+                store: "Bookstore",
+                myLibrary: "My Library",
+                sellerDashboard: "Author Studio",
+                adminDashboard: "Admin Portal",
+                searchPlaceholder: "Search title, author, or category...",
+                heroTitle: "Discover, Read & Own Premium Digital PDF Books",
+                heroSub: "Global marketplace empowering independent authors & creators with instant digital book publishing.",
+                browseBooks: "Explore Catalog",
+                startSelling: "Start Selling",
+                featuredBooks: "Featured Books",
+                newArrivals: "New Arrivals",
+                bestSellers: "Best Sellers",
+                categories: "Categories",
+                allCategories: "All Categories",
+                price: "Price",
+                buyNow: "Buy Now",
+                addToCart: "Add to Cart",
+                previewBook: "Sample Preview",
+                pages: "pages",
+                author: "Author",
+                rating: "Rating",
+                cart: "Shopping Cart",
+                checkout: "Checkout",
+                total: "Total Amount",
+                paymentMethod: "Payment Method",
+                uploadReceipt: "Upload Transfer Receipt",
+                confirmOrder: "Submit Payment Proof",
+                pendingApproval: "Pending Review",
+                approved: "Unlocked for Download",
+                downloadPdf: "Download PDF",
+                readOnline: "Read Online",
+                platformCommissionNotice: "Automated revenue split: 80% Author / 20% Platform Fee.",
+                sellerEarnings: "Net Royalties (80%)",
+                totalSales: "Total Sales",
+                availableBalance: "Available Balance",
+                requestPayout: "Request Payout",
+                addNewBook: "Upload New Book",
+                bookTitleAr: "Book Title (Arabic)",
+                bookTitleEn: "Book Title (English)",
+                bookDesc: "Description",
+                uploadPdfFile: "Upload PDF File",
+                uploadCoverImage: "Upload Cover Image",
+                adminPendingPayments: "Pending Payments Queue",
+                adminPendingBooks: "Book Approval Queue",
+                approve: "Approve",
+                reject: "Reject",
+                revenueSummary: "Revenue Summary",
+                ketabiRevenue: "Ketabi Net Revenue (20%)",
+                sellerPayouts: "Sellers Pool (80%)",
+                searchFilter: "Filter & Sort",
+                priceLowHigh: "Price: Low to High",
+                priceHighLow: "Price: High to Low",
+                newest: "Newest First",
+                currencyLbp: "LBP",
+                cartEmpty: "Your shopping cart is empty.",
+                noPurchasedBooks: "No purchased books found in your library.",
+                previewModalTitle: "Sample Preview",
+                close: "Close",
+                languageToggle: "عربي",
+                lbpRateText: "1 $ = 89,500 LBP",
+            }
+        };
+
+        const INITIAL_CATEGORIES = [
+            { id: "lit", nameAr: "الروايات والأدب", nameEn: "Literature & Novels", icon: "book-open" },
+            { id: "edu", nameAr: "الكتب التعليمية", nameEn: "Educational Books", icon: "graduation-cap" },
+            { id: "kids", nameAr: "كتب الأطفال", nameEn: "Children's Books", icon: "smile" },
+            { id: "self", nameAr: "التنمية البشرية", nameEn: "Self-Development", icon: "sparkles" },
+            { id: "hist", nameAr: "التاريخ والتراث", nameEn: "History", icon: "landmark" },
+            { id: "tech", nameAr: "العلوم والتكنولوجيا", nameEn: "Science & Tech", icon: "code" }
+        ];
+
+        const INITIAL_BOOKS = [
+            {
+                id: "b1",
+                titleAr: "فن إدارة الوقت والإنتاجية الرقمية",
+                titleEn: "Mastering Digital Productivity",
+                authorAr: "د. طارق الحكيم",
+                authorEn: "Dr. Tarek Al-Hakim",
+                sellerId: "seller_1",
+                categoryId: "self",
+                priceUsd: 12.00,
+                pages: 240,
+                rating: 4.9,
+                reviewsCount: 38,
+                coverUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600",
+                descriptionAr: "دليل شامل وعملي لأحدث استراتيجيات تنظيم اليوم والعمق الإنجازي في العصر الرقمي الحديث.",
+                descriptionEn: "A comprehensive guide on focus, deep work strategies, and modern digital time management.",
+                sampleText: "الفصل الأول: معضلة التشتت الرقمي... تظهر الدراسات الحديثة أن متوسط معدل انتباه الإنسان انخفض بشدة بسبب التنبيهات المستمرة. الحل يبدأ من جدولة أنشطة اليوم عبر صوم إلكتروني مبرمج...",
+                isApproved: true,
+                isFeatured: true,
+                isBestSeller: true,
+                createdAt: "2026-02-10"
+            },
+            {
+                id: "b2",
+                titleAr: "أساسيات الذكاء الاصطناعي للمبتكرين",
+                titleEn: "AI Fundamentals for Innovators",
+                authorAr: "المهندس كريم الخوري",
+                authorEn: "Eng. Karim El-Khoury",
+                sellerId: "seller_2",
+                categoryId: "tech",
+                priceUsd: 18.50,
+                pages: 310,
+                rating: 4.8,
+                reviewsCount: 52,
+                coverUrl: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=600",
+                descriptionAr: "كتاب يبسط المفاهيم الحديثة وتعلم الآلة والتحول الرقمي لأصحاب الشركات والمطورين الصاعدين.",
+                descriptionEn: "Demystifying AI, Machine Learning models, and automated transformation for digital builders.",
+                sampleText: "المقدمة: كيف يغير الذكاء الاصطناعي بيئة الأعمال؟ المعالجة للبيانات لم تعد مجرد حسابات إحصائية تقليدية بل باتت قدرة توقّعية تنبؤية...",
+                isApproved: true,
+                isFeatured: true,
+                isBestSeller: false,
+                createdAt: "2026-02-15"
+            },
+            {
+                id: "b3",
+                titleAr: "ظلال في أزقة بيروت القديمة",
+                titleEn: "Shadows in Old Beirut Alleys",
+                authorAr: "منى الجميل",
+                authorEn: "Mona El-Jammal",
+                sellerId: "seller_1",
+                categoryId: "lit",
+                priceUsd: 9.99,
+                pages: 185,
+                rating: 4.7,
+                reviewsCount: 29,
+                coverUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=600",
+                descriptionAr: "رواية شيقة تأخذك في رحلة تاريخية وإنسانية بين أزقة الأحياء التراثية وحكايات ساكنيها.",
+                descriptionEn: "A captivating novel exploring heritage, human stories, and nostalgic mysteries in vintage Beirut.",
+                sampleText: "كانت الساعة تشير إلى الرابعة عصراً عندما هبت نسائم البحر العليلة عبر شرفة البيت القديم...",
+                isApproved: true,
+                isFeatured: false,
+                isBestSeller: true,
+                createdAt: "2026-01-20"
+            }
+        ];
+
+        const INITIAL_PURCHASES = [
+            {
+                id: "ord_101",
+                customerName: "سارة حداد",
+                customerEmail: "sara@example.com",
+                bookId: "b1",
+                amountUsd: 12.00,
+                paymentMethod: "Whish Money",
+                referenceId: "WSH-992014",
+                receiptImage: "https://placehold.co/400x500/E8DFD1/2C1D11?text=Whish+Receipt+Ref+992014",
+                status: "approved",
+                date: "2026-02-28"
+            }
+        ];
+
+        const AppContext = createContext();
+
+        function AppProvider({ children }) {
+            const [lang, setLang] = useState(() => localStorage.getItem('ketabi_lang') || 'ar');
+            const [role, setRole] = useState(() => localStorage.getItem('ketabi_role') || 'customer');
+            const [books, setBooks] = useState(() => {
+                const saved = localStorage.getItem('ketabi_books');
+                return saved ? JSON.parse(saved) : INITIAL_BOOKS;
+            });
+            const [purchases, setPurchases] = useState(() => {
+                const saved = localStorage.getItem('ketabi_purchases');
+                return saved ? JSON.parse(saved) : INITIAL_PURCHASES;
+            });
+            const [payoutRequests, setPayoutRequests] = useState(() => {
+                const saved = localStorage.getItem('ketabi_payouts');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            const [cart, setCart] = useState([]);
+            const [activeTab, setActiveTab] = useState('home');
+            const [selectedBookForModal, setSelectedBookForModal] = useState(null);
+            const [previewBook, setPreviewBook] = useState(null);
+            const [readerBook, setReaderBook] = useState(null);
+            const [toast, setToast] = useState(null);
+
+            useEffect(() => {
+                localStorage.setItem('ketabi_lang', lang);
+                document.documentElement.lang = lang;
+                document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            }, [lang]);
+
+            useEffect(() => {
+                localStorage.setItem('ketabi_role', role);
+            }, [role]);
+
+            useEffect(() => {
+                localStorage.setItem('ketabi_books', JSON.stringify(books));
+            }, [books]);
+
+            useEffect(() => {
+                localStorage.setItem('ketabi_purchases', JSON.stringify(purchases));
+            }, [purchases]);
+
+            useEffect(() => {
+                localStorage.setItem('ketabi_payouts', JSON.stringify(payoutRequests));
+            }, [payoutRequests]);
+
+            const showToast = (message, type = 'success') => {
+                setToast({ message, type });
+                setTimeout(() => setToast(null), 3500);
+            };
+
+            const t = translations[lang];
+
+            const addToCart = (book) => {
+                if (cart.some(item => item.id === book.id)) {
+                    showToast(lang === 'ar' ? 'الكتاب موجود بالفعل في السلة' : 'Book is already in cart', 'info');
+                    return;
+                }
+                setCart([...cart, book]);
+                showToast(lang === 'ar' ? 'تمت إضافة الكتاب للسلة بنجاح' : 'Added to cart successfully');
+            };
+
+            const removeFromCart = (bookId) => {
+                setCart(cart.filter(item => item.id !== bookId));
+            };
+
+            const clearCart = () => setCart([]);
+            const usdToLbp = (usd) => (usd * 89500).toLocaleString();
+
+            return (
+                <AppContext.Provider value={{
+                    lang, setLang,
+                    role, setRole,
+                    books, setBooks,
+                    purchases, setPurchases,
+                    payoutRequests, setPayoutRequests,
+                    cart, addToCart, removeFromCart, clearCart,
+                    activeTab, setActiveTab,
+                    selectedBookForModal, setSelectedBookForModal,
+                    previewBook, setPreviewBook,
+                    readerBook, setReaderBook,
+                    showToast,
+                    t,
+                    usdToLbp,
+                    categories: INITIAL_CATEGORIES
+                }}>
+                    {children}
+                    {toast && (
+                        <div className={`fixed bottom-5 ${lang === 'ar' ? 'left-5' : 'right-5'} z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl text-white transition-all transform animate-bounce ${
+                            toast.type === 'error' ? 'bg-red-700' : toast.type === 'info' ? 'bg-blue-700' : 'bg-brown-900 border border-gold-500'
+                        }`}>
+                            <i data-lucide={toast.type === 'error' ? 'alert-circle' : 'check-circle'} className="w-5 h-5 text-gold-400"></i>
+                            <span className="font-medium text-sm">{toast.message}</span>
+                        </div>
+                    )}
+                </AppContext.Provider>
+            );
+        }
+
+        const useApp = () => useContext(AppContext);
+
+        function Icon({ name, className = "w-5 h-5" }) {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} className={className}></i>;
+        }
+
+        function Header() {
+            const { lang, setLang, role, setRole, cart, activeTab, setActiveTab, t } = useApp();
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+            return (
+                <header className="sticky top-0 z-40 bg-cream-50/95 backdrop-blur-md border-b border-beige-200 shadow-sm">
+                    <div className="bg-brown-900 text-cream-100 text-xs py-1.5 px-4 flex flex-wrap justify-between items-center gap-2 border-b border-gold-600/30">
+                        <div className="flex items-center gap-2">
+                            <span className="text-gold-400 font-bold flex items-center gap-1">
+                                <Icon name="shield-alert" className="w-3.5 h-3.5" />
+                                {t.switchRole}
+                            </span>
+                            <div className="inline-flex rounded-lg bg-brown-800 p-0.5 border border-brown-700">
+                                <button 
+                                    onClick={() => { setRole('customer'); setActiveTab('home'); }}
+                                    className={`px-2.5 py-0.5 rounded-md text-xs transition ${role === 'customer' ? 'bg-gold-500 text-brown-950 font-bold' : 'text-cream-200 hover:text-white'}`}>
+                                    {t.roleCustomer}
+                                </button>
+                                <button 
+                                    onClick={() => { setRole('seller'); setActiveTab('seller'); }}
+                                    className={`px-2.5 py-0.5 rounded-md text-xs transition ${role === 'seller' ? 'bg-gold-500 text-brown-950 font-bold' : 'text-cream-200 hover:text-white'}`}>
+                                    {t.roleSeller}
+                                </button>
+                                <button 
+                                    onClick={() => { setRole('admin'); setActiveTab('admin'); }}
+                                    className={`px-2.5 py-0.5 rounded-md text-xs transition ${role === 'admin' ? 'bg-gold-500 text-brown-950 font-bold' : 'text-cream-200 hover:text-white'}`}>
+                                    {t.roleAdmin}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-beige-300">
+                            <span>{t.lbpRateText}</span>
+                            <button 
+                                onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+                                className="flex items-center gap-1 font-bold text-gold-400 hover:text-gold-300 bg-brown-800 px-2 py-0.5 rounded border border-brown-700">
+                                <Icon name="globe" className="w-3 h-3" />
+                                {t.languageToggle}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+                        <div onClick={() => setActiveTab('home')} className="flex items-center gap-3 cursor-pointer group">
+                            <div className="w-11 h-11 rounded-xl gold-gradient flex items-center justify-center text-brown-950 shadow-md group-hover:scale-105 transition-transform">
+                                <Icon name="book-open-check" className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-extrabold text-brown-900 tracking-tight leading-none">{t.appName}</h1>
+                                <p className="text-xs font-medium text-gold-700 mt-0.5">{t.appSubTitle}</p>
+                            </div>
+                        </div>
+
+                        <nav className="hidden md:flex items-center gap-1 font-semibold text-brown-800">
+                            <button onClick={() => setActiveTab('home')} className={`px-4 py-2 rounded-lg transition ${activeTab === 'home' ? 'bg-beige-200 text-brown-950 font-bold' : 'hover:bg-beige-100'}`}>{t.home}</button>
+                            <button onClick={() => setActiveTab('store')} className={`px-4 py-2 rounded-lg transition ${activeTab === 'store' ? 'bg-beige-200 text-brown-950 font-bold' : 'hover:bg-beige-100'}`}>{t.store}</button>
+                            <button onClick={() => setActiveTab('library')} className={`px-4 py-2 rounded-lg transition ${activeTab === 'library' ? 'bg-beige-200 text-brown-950 font-bold' : 'hover:bg-beige-100'}`}>{t.myLibrary}</button>
+                            {role === 'seller' && (
+                                <button onClick={() => setActiveTab('seller')} className={`px-4 py-2 rounded-lg transition border border-gold-500/40 ${activeTab === 'seller' ? 'bg-gold-500 text-brown-950 font-bold' : 'bg-gold-50 text-brown-900 hover:bg-gold-100'}`}>{t.sellerDashboard}</button>
+                            )}
+                            {role === 'admin' && (
+                                <button onClick={() => setActiveTab('admin')} className={`px-4 py-2 rounded-lg transition border border-red-500/30 ${activeTab === 'admin' ? 'bg-brown-900 text-white font-bold' : 'bg-brown-100 text-brown-900 hover:bg-brown-200'}`}>{t.adminDashboard}</button>
+                            )}
+                        </nav>
+
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setActiveTab('checkout')} className="relative p-2.5 rounded-xl bg-beige-100 text-brown-900 hover:bg-beige-200 transition">
+                                <Icon name="shopping-bag" className="w-5 h-5" />
+                                {cart.length > 0 && (
+                                    <span className="absolute -top-1.5 -right-1.5 bg-gold-600 text-white font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center shadow">{cart.length}</span>
+                                )}
+                            </button>
+                            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-lg bg-beige-100 text-brown-900">
+                                <Icon name={mobileMenuOpen ? "x" : "menu"} className="w-6 h-6" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {mobileMenuOpen && (
+                        <div className="md:hidden bg-cream-100 border-b border-beige-200 px-4 pt-2 pb-4 space-y-2">
+                            <button onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }} className="block w-full text-start py-2.5 px-3 rounded-lg hover:bg-beige-200 text-brown-900 font-medium">{t.home}</button>
+                            <button onClick={() => { setActiveTab('store'); setMobileMenuOpen(false); }} className="block w-full text-start py-2.5 px-3 rounded-lg hover:bg-beige-200 text-brown-900 font-medium">{t.store}</button>
+                            <button onClick={() => { setActiveTab('library'); setMobileMenuOpen(false); }} className="block w-full text-start py-2.5 px-3 rounded-lg hover:bg-beige-200 text-brown-900 font-medium">{t.myLibrary}</button>
+                            <button onClick={() => { setActiveTab('seller'); setMobileMenuOpen(false); }} className="block w-full text-start py-2.5 px-3 rounded-lg bg-gold-100 text-brown-950 font-semibold">{t.sellerDashboard}</button>
+                            <button onClick={() => { setActiveTab('admin'); setMobileMenuOpen(false); }} className="block w-full text-start py-2.5 px-3 rounded-lg bg-brown-800 text-white font-semibold">{t.adminDashboard}</button>
+                        </div>
+                    )}
+                </header>
+            );
+        }
+
+        function BookCard({ book }) {
+            const { lang, addToCart, setSelectedBookForModal, setPreviewBook, t, usdToLbp } = useApp();
+            const title = lang === 'ar' ? book.titleAr : book.titleEn;
+            const author = lang === 'ar' ? book.authorAr : book.authorEn;
+
+            return (
+                <div className="bg-white rounded-2xl border border-beige-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group">
+                    <div className="relative aspect-[3/4] bg-beige-100 overflow-hidden cursor-pointer" onClick={() => setSelectedBookForModal(book)}>
+                        <img src={book.coverUrl} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        {book.isBestSeller && (
+                            <span className="absolute top-3 right-3 bg-gold-500 text-brown-950 font-bold text-xs px-2.5 py-1 rounded-full shadow">{t.bestSellers}</span>
+                        )}
+                        <div className="absolute inset-0 bg-brown-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button onClick={(e) => { e.stopPropagation(); setPreviewBook(book); }} className="p-3 bg-white/90 rounded-full text-brown-900 hover:bg-gold-500 transition shadow-lg">
+                                <Icon name="eye" className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center justify-between text-xs text-gold-700 font-semibold mb-1">
+                                <span className="flex items-center gap-1">
+                                    <Icon name="star" className="w-3.5 h-3.5 fill-gold-500 text-gold-500" />
+                                    {book.rating} ({book.reviewsCount})
+                                </span>
+                                <span>{book.pages} {t.pages}</span>
+                            </div>
+                            <h3 onClick={() => setSelectedBookForModal(book)} className="font-bold text-brown-900 text-base line-clamp-1 hover:text-gold-700 cursor-pointer transition">{title}</h3>
+                            <p className="text-xs text-brown-700/80 mb-3">{t.author}: {author}</p>
+                        </div>
+
+                        <div className="pt-3 border-t border-beige-100 flex items-center justify-between gap-2">
+                            <div>
+                                <span className="text-lg font-extrabold text-brown-900">${book.priceUsd.toFixed(2)}</span>
+                                <span className="block text-[10px] text-brown-700/60">{usdToLbp(book.priceUsd)} {t.currencyLbp}</span>
+                            </div>
+                            <button onClick={() => addToCart(book)} className="bg-brown-900 hover:bg-brown-800 text-cream-100 p-2.5 rounded-xl transition flex items-center gap-1 text-xs font-semibold shadow-sm">
+                                <Icon name="shopping-cart" className="w-4 h-4 text-gold-400" />
+                                <span className="hidden sm:inline">{t.addToCart}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function HomePage() {
+            const { books, categories, lang, setActiveTab, t } = useApp();
+            const approvedBooks = books.filter(b => b.isApproved);
+
+            return (
+                <div className="space-y-12 pb-16">
+                    <section className="relative overflow-hidden rounded-3xl bg-brown-900 text-cream-50 p-8 sm:p-12 lg:p-16 border border-brown-800 shadow-2xl">
+                        <div className="relative z-10 max-w-3xl space-y-6">
+                            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/20 text-gold-400 border border-gold-500/30 text-xs font-bold">
+                                <Icon name="sparkles" className="w-4 h-4" />
+                                {lang === 'ar' ? 'سوق الكتب الرقمية العربي الأول' : 'Digital Book Marketplace'}
+                            </span>
+                            <h1 className="text-3xl sm:text-5xl font-black text-cream-50 tracking-tight leading-tight">{t.heroTitle}</h1>
+                            <p className="text-beige-300 text-base sm:text-lg font-normal leading-relaxed">{t.heroSub}</p>
+                            <div className="pt-2">
+                                <button onClick={() => setActiveTab('store')} className="gold-gradient text-brown-950 font-bold px-8 py-4 rounded-xl hover:opacity-90 transition text-sm shadow">
+                                    {t.browseBooks}
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-extrabold text-brown-900 mb-6">{t.categories}</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                            {categories.map(cat => (
+                                <div key={cat.id} onClick={() => setActiveTab('store')} className="bg-white p-5 rounded-2xl border border-beige-200 text-center hover:border-gold-500 transition cursor-pointer">
+                                    <div className="w-12 h-12 rounded-xl bg-beige-100 text-brown-900 flex items-center justify-center mx-auto mb-3">
+                                        <Icon name={cat.icon} className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="font-bold text-brown-900 text-sm">{lang === 'ar' ? cat.nameAr : cat.nameEn}</h3>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-extrabold text-brown-900 mb-6">{t.featuredBooks}</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {approvedBooks.map(book => (
+                                <BookCard key={book.id} book={book} />
+                            ))}
+                        </div>
+                    </section>
+                </div>
+            );
+        }
+
+        function StorePage() {
+            const { books, lang, t } = useApp();
+            const approvedBooks = books.filter(b => b.isApproved);
+
+            return (
+                <div className="space-y-8 pb-16">
+                    <h2 className="text-2xl font-black text-brown-900">{t.store}</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {approvedBooks.map(book => (
+                            <BookCard key={book.id} book={book} />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function LibraryPage() {
+            const { purchases, books, lang, setReaderBook, t } = useApp();
+
+            return (
+                <div className="space-y-6 pb-16">
+                    <h2 className="text-2xl font-black text-brown-900">{t.myLibrary}</h2>
+                    {purchases.length === 0 ? (
+                        <p className="text-brown-700">{t.noPurchasedBooks}</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {purchases.map(p => {
+                                const book = books.find(b => b.id === p.bookId);
+                                if (!book) return null;
+                                return (
+                                    <div key={p.id} className="bg-white p-5 rounded-2xl border border-beige-200 flex gap-4 items-center">
+                                        <img src={book.coverUrl} className="w-20 h-28 object-cover rounded-xl" />
+                                        <div className="space-y-2">
+                                            <h3 className="font-bold text-brown-900">{lang === 'ar' ? book.titleAr : book.titleEn}</h3>
+                                            {p.status === 'approved' ? (
+                                                <button onClick={() => setReaderBook(book)} className="gold-gradient text-brown-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1">
+                                                    <Icon name="book-open" className="w-4 h-4" /> {t.readOnline}
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs bg-amber-100 text-amber-800 p-2 rounded-lg block">{t.pendingApproval}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function CheckoutPage() {
+            const { cart, clearCart, purchases, setPurchases, setActiveTab, showToast, t, usdToLbp } = useApp();
+            const [refId, setRefId] = useState('');
+            const totalUsd = cart.reduce((sum, item) => sum + item.priceUsd, 0);
+
+            const handleCheckout = (e) => {
+                e.preventDefault();
+                const newPurchases = cart.map((item, idx) => ({
+                    id: 'ord_' + Date.now() + '_' + idx,
+                    customerName: 'مشتري',
+                    bookId: item.id,
+                    amountUsd: item.priceUsd,
+                    paymentMethod: 'Whish Money',
+                    referenceId: refId || 'REF-1009',
+                    status: 'pending',
+                    date: new Date().toISOString().split('T')[0]
+                }));
+                setPurchases([...purchases, ...newPurchases]);
+                clearCart();
+                showToast('تم إرسال الطلب بنجاح وهو قيد المراجعة');
+                setActiveTab('library');
+            };
+
+            if (cart.length === 0) return <div className="text-center py-20">{t.cartEmpty}</div>;
+
+            return (
+                <div className="max-w-xl mx-auto bg-white p-6 rounded-3xl border border-beige-300 space-y-6">
+                    <h3 className="text-xl font-bold border-b pb-3">{t.checkout}</h3>
+                    <div className="flex justify-between font-bold text-lg">
+                        <span>{t.total}:</span>
+                        <span>${totalUsd.toFixed(2)} ({usdToLbp(totalUsd)} {t.currencyLbp})</span>
+                    </div>
+                    <form onSubmit={handleCheckout} className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold mb-1">رقم مرجع التحويل (Whish Money / OMT):</label>
+                            <input required type="text" value={refId} onChange={e => setRefId(e.target.value)} className="w-full border rounded-xl p-3 text-sm" placeholder="Ex: WSH-88201" />
+                        </div>
+                        <button type="submit" className="w-full gold-gradient text-brown-950 font-black py-4 rounded-xl">{t.confirmOrder}</button>
+                    </form>
+                </div>
+            );
+        }
+
+        function SellerDashboardPage() {
+            const { books, purchases, t } = useApp();
+            const sellerBooks = books.filter(b => b.sellerId === 'seller_1');
+            const totalSales = purchases.filter(p => p.status === 'approved').reduce((sum, p) => sum + p.amountUsd, 0);
+
+            return (
+                <div className="space-y-6 pb-16">
+                    <div className="bg-brown-900 text-cream-50 p-6 rounded-3xl">
+                        <h2 className="text-2xl font-black">{t.sellerDashboard}</h2>
+                        <p className="text-xs text-gold-400 mt-1">{t.platformCommissionNotice}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div className="bg-white p-4 rounded-2xl border">
+                            <span className="text-xs font-bold text-brown-700">{t.totalSales}</span>
+                            <div className="text-xl font-black">${totalSales.toFixed(2)}</div>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl border border-emerald-500">
+                            <span className="text-xs font-bold text-emerald-800">{t.sellerEarnings}</span>
+                            <div className="text-xl font-black text-emerald-800">${(totalSales * 0.8).toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminDashboardPage() {
+            const { purchases, setPurchases, t } = useApp();
+            const pending = purchases.filter(p => p.status === 'pending');
+
+            const handleApprove = (id) => {
+                setPurchases(purchases.map(p => p.id === id ? { ...p, status: 'approved' } : p));
+            };
+
+            return (
+                <div className="space-y-6 pb-16">
+                    <div className="bg-brown-900 text-cream-50 p-6 rounded-3xl">
+                        <h2 className="text-2xl font-black">{t.adminDashboard}</h2>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-3xl border space-y-4">
+                        <h3 className="font-bold">{t.adminPendingPayments} ({pending.length})</h3>
+                        {pending.map(p => (
+                            <div key={p.id} className="flex justify-between items-center p-3 bg-cream-50 rounded-xl border">
+                                <div>
+                                    <div className="font-bold text-sm">${p.amountUsd.toFixed(2)} - {p.paymentMethod}</div>
+                                    <div className="text-xs text-brown-700">Ref: {p.referenceId}</div>
+                                </div>
+                                <button onClick={() => handleApprove(p.id)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold">{t.approve}</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const { activeTab } = useApp();
+
+            return (
+                <div className="min-h-screen flex flex-col bg-cream-50 text-brown-950">
+                    <Header />
+                    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                        {activeTab === 'home' && <HomePage />}
+                        {activeTab === 'store' && <StorePage />}
+                        {activeTab === 'library' && <LibraryPage />}
+                        {activeTab === 'checkout' && <CheckoutPage />}
+                        {activeTab === 'seller' && <SellerDashboardPage />}
+                        {activeTab === 'admin' && <AdminDashboardPage />}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(
+            <AppProvider>
+                <App />
+            </AppProvider>
+        );
+    </script>
+</body>
+</html>
